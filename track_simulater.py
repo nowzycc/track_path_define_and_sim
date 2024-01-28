@@ -34,6 +34,9 @@ class track_path_simulater:
         self.robot_world_speed[0] = self.robot_track_speed[1]*np.sin(self.track2world_angle_offset)+self.robot_track_speed[0]*np.cos(self.track2world_angle_offset)
         self.robot_world_speed[1] = self.robot_track_speed[1]*np.cos(self.track2world_angle_offset)+self.robot_track_speed[0]*np.sin(self.track2world_angle_offset)
     
+    def __update_track_value(self):
+        pass
+    
     @staticmethod
     def __get_track_speed(dx,dy,speed):
         dy_x = dy / dx
@@ -54,14 +57,18 @@ class track_path_simulater:
         self.robot_track_angle = np.array(self.current_plan.initial_angle)
         self.robot_speed = 0
         self.__update_world_value()
-        
-    def update(self):
+    
+    def call_plan(self):
         x = self.robot_track_pos[0]
         y = self.robot_track_pos[1]
         pitch = self.robot_track_angle[0]
         yaw = self.robot_track_angle[1]
         self.robot_speed = self.current_plan.func_chassis_speed_define(x,y,pitch,yaw,self.time_now)
         self.robot_track_angle = self.current_plan.func_gimbal_angle_define(x,y,pitch,yaw,self.time_now)
+    
+    def update_pose(self):
+        x = self.robot_track_pos[0]
+        y = self.robot_track_pos[1]
         dx,dy = self.track.get_slope_for_point(x,y)
         dx,dy = self.__get_positive_direction(dx,dy,self.robot_track_angle)
         self.robot_track_speed = self.__get_track_speed(dx,dy,self.robot_speed)
@@ -69,8 +76,27 @@ class track_path_simulater:
         self.robot_track_pos[1] += self.robot_track_speed[1] * self.delta
         self.__update_world_value()
 
+    def set_track_pose(self,x,y,pitch,yaw):
+        self.robot_track_pos = (x,y)
+        self.robot_track_angle = (pitch,yaw)
+        self.__update_world_value()
+        
+    def set_world_pose(self,x,y,pitch,yaw):
+        self.robot_world_pos = (x,y)
+        self.robot_world_angle = (pitch,yaw)
+        self.__update_track_value()
+        
     def get_track_pos(self):
         return self.robot_track_pos
     
     def get_track_angle(self):
         return self.robot_track_angle
+
+    def get_world_pos(self):
+        return self.robot_world_pos
+    
+    def get_world_angle(self):
+        return self.robot_world_angle
+    
+    def get_robot_speed(self):
+        return self.robot_speed
