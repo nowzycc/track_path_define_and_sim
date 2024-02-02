@@ -1,28 +1,22 @@
+import copy
 import os
-import inspect
 from sympy.abc import x, y, z
 from sympy import solve
 import pickle
 import numpy as np
 import cv2
 
-class track_plan:
+class track_plan_base:
     def __init__(self,name) -> None:
         self.name = name
-        self.func_chassis_speed_define = None
-        self.func_gimbal_angle_define = None
         self.initial_pos = None
         self.initial_angle = None
     
-    def chassis_speed_define(self,func):
-        if not callable(func):
-            raise 'func can not be called'
-        self.func_chassis_speed_define = func
+    def chassis_speed(self,x,y,pitch,yaw,t):
+        pass
     
-    def gimbal_angle_define(self,func):
-        if not callable(func):
-            raise 'func can not be called'
-        self.func_gimbal_angle_define = func
+    def gimbal_angle(self,x,y,pitch,yaw,t):
+        pass
         
     def initial_pos_set(self,pos:tuple,angle:tuple):
         self.initial_pos = pos
@@ -61,8 +55,8 @@ class single_track:
         if self.track_description_method != 'grayscalepic':
             raise 'track desciption method is not grayscale pictrue'
     
-    def track_plan_append(self,plan:track_plan):
-        self.track_plan_dict[plan.name] = plan
+    def track_plan_append(self,plan):
+        self.track_plan_dict = copy.deepcopy(plan)
     
     def set_grayscale_pic(self,path,gray_thresh=50,pix_length=0.05,nearby_length=0.2):
         self.assert_is_grayscalepic()
@@ -158,6 +152,14 @@ class single_track:
         
     def save(self,path:os.PathLike):
         temp = (self.name,
+                self.track_description_method,
+                self.track_width,
+                self.threshold,
+                self.img,
+                self.pix_length,
+                self.binary_pic,
+                self.edge_pic,
+                self.nearby_length,
                 self.angle_offset,
                 self.pos_offset,
                 self.track_plan_dict,
@@ -169,13 +171,21 @@ class single_track:
         
     def load(self,path:os.PathLike):
         temp_str = None
+        print('get 180')
         with open(path,'rb') as f:
             temp_str = f.read()
         temp = pickle.loads(temp_str)
         self.name = temp[0]
-        self.angle_offset = temp[1]
-        self.pos_offset = temp[2]
-        self.track_plan_dict = temp[3]
-        self.formula_list = temp[4]
-
-
+        self.track_description_method = temp[1]
+        self.track_width = temp[2]
+        self.threshold = temp[3]
+        self.img = temp[4]
+        self.pix_length = temp[5]
+        self.binary_pic = temp[6]
+        self.edge_pic = temp[7]
+        self.nearby_length = temp[8]
+        self.angle_offset = temp[9]
+        self.pos_offset = temp[10]
+        print('get 194')
+        self.track_plan_dict = temp[11]
+        self.formula_list = temp[12]

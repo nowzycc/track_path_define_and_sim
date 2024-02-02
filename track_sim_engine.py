@@ -1,10 +1,13 @@
-from flask import Flask, request
-from flask_restful import RESTful, Resource
+from flask import Flask, request,jsonify
+from flask_restful import Api, Resource
 from track_simulater import track_path_simulater
 from track_define_interface import single_track
+import logging
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 app = Flask(__name__)
-api = RESTful(app)
+api = Api(app)
+version = 'v0.1'
 track_path = '/home/alstondu/cc_code/track_define/tracks'
 simulater = None
 tracks_obj_path = {
@@ -15,6 +18,7 @@ delta_time = 0
 class SimulaterCtl(Resource):
     def post(self):
         cmd = request.json.get('cmd')
+        print('get here')
         match cmd:
             case 'init':
                 track_name = request.json.get('track_name')
@@ -23,13 +27,13 @@ class SimulaterCtl(Resource):
                     track = single_track(track_name)
                     track.load(tracks_obj_path[track_name])
                 except BaseException as e:
-                    return {'result': 'error','cause':e}
-                global simulater
+                    print(e)
+                    return {'result': 'error','cause':''}
                 simulater = track_path_simulater(track)
+                print('get here')
                 return {'result': 'success'}
             
             case 'setup':
-                global simulater
                 if simulater == None:
                     return {'result': 'error','cause':'simulater has not been inited'}
                 simulater.setup()
@@ -40,7 +44,6 @@ class SimulaterCtl(Resource):
             case 'change_plan':
                 pass
             case 'set_delta_time':
-                global simulater
                 if simulater == None:
                     return {'result': 'error','cause':'simulater has not been inited'}
                 global delta_time
@@ -85,9 +88,13 @@ class ExportTrack(Resource):
     def get(self):
         return {'err':'err'}
 
-api.add_resource(SimulaterCtl, '/api/SimulaterCtl')
-api.add_resource(DataUpdate, '/api/DataUpdate')
-api.add_resource(ExportTrack, '/api/ExportTrack')
+@app.route('/VersionCheck')
+def VersionCheck():
+    return jsonify({'version':version})
+
 
 if __name__ == '__main__':
+    api.add_resource(SimulaterCtl, '/api/SimulaterCtl')
+    api.add_resource(DataUpdate, '/api/DataUpdate')
+    api.add_resource(ExportTrack, '/api/ExportTrack')
     app.run(debug=True)

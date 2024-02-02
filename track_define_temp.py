@@ -1,4 +1,4 @@
-from track_define_interface import track_plan,single_track,x,y
+from track_define_interface import track_plan_base,single_track,x,y
 
 def chassis_speed(x,y,pitch,yaw,t):
     # x和y是传入的是当前机器人在轨道坐标系下坐标
@@ -27,7 +27,7 @@ def gimbal_angle(x,y,pitch,yaw,t):
     return 0,0
 
 plan_name = 'demo_plan'
-plan = track_plan(plan_name) # 在这里设定巡检策略的名字
+plan = track_plan_base(plan_name) # 在这里设定巡检策略的名字
 plan.chassis_speed_define(chassis_speed)
 plan.gimbal_angle_define(gimbal_angle)
 plan.initial_pos_set((0, 0), (0, 0)) # 第一个参数是初始化坐标、第二个参数是初始化云台角度
